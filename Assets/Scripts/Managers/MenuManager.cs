@@ -2,6 +2,10 @@ using Unity.Netcode;
 
 using UnityEngine;
 using System.Collections;
+using TMPro;
+using Unity.Netcode.Transports.UTP;
+using System.Net;
+using System.Net.Sockets;
 
 public class MenuManager : MonoBehaviour
 {
@@ -19,6 +23,8 @@ public class MenuManager : MonoBehaviour
 
     [SerializeField]
     private SceneName nextScene = SceneName.CharacterSelection;
+
+    [SerializeField] TMP_InputField serverIPInput;
 
     private IEnumerator Start()
     {
@@ -65,6 +71,17 @@ public class MenuManager : MonoBehaviour
 
     public void OnClickHost()
     {
+        var unityTransport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+        var host = Dns.GetHostEntry(Dns.GetHostName());
+        foreach (var ip in host.AddressList)
+        {
+            if (ip.AddressFamily == AddressFamily.InterNetwork)
+            {
+                unityTransport.ConnectionData.Address = ip.ToString();
+                unityTransport.ConnectionData.Port = 7777;
+                break;
+            }
+        }
         NetworkManager.Singleton.StartHost();
         AudioManager.Instance.PlaySoundEffect(m_confirmClip);
         LoadingSceneManager.Instance.LoadScene(nextScene);
@@ -72,6 +89,14 @@ public class MenuManager : MonoBehaviour
 
     public void OnClickJoin()
     {
+        if (!string.IsNullOrEmpty(serverIPInput.text))
+        {
+            string serverIP = serverIPInput.text;
+            var unityTransport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+            unityTransport.ConnectionData.Address = serverIP;
+            unityTransport.ConnectionData.Port = 7777; // Ensure this matches your server port
+        }
+
         AudioManager.Instance.PlaySoundEffect(m_confirmClip);
         StartCoroutine(Join());
     }
@@ -106,5 +131,6 @@ public class MenuManager : MonoBehaviour
         yield return new WaitUntil(() => LoadingFadeEffect.s_canLoad);
 
         NetworkManager.Singleton.StartClient();
+        Debug.Log("Server Client ID:" + NetworkManager.Singleton.NetworkConfig.NetworkTransport.ServerClientId);
     }
 }

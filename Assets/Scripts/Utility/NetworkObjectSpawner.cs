@@ -82,7 +82,7 @@ public class NetworkObjectSpawner
         GameObject newGameObject = Object.Instantiate(prefab, position, Quaternion.identity);
 
         // Replicating that same new instance to all connected clients
-        NetworkObject newGameObjectNetworkObject = newGameObject.GetComponent<NetworkObject>();
+        NetworkObject newGameObjectNetworkObject = newGameObject.GetComponentInChildren<NetworkObject>();
         newGameObjectNetworkObject.SpawnAsPlayerObject(newClientOwnerId, destroyWithScene);
 
         return newGameObject;
@@ -104,7 +104,7 @@ public class NetworkObjectSpawner
         GameObject newGameObject = Object.Instantiate(prefab, position, Quaternion.identity);
 
         // Replicating that same new instance to all connected clients
-        NetworkObject newGameObjectNetworkObject = newGameObject.GetComponent<NetworkObject>();
+        NetworkObject newGameObjectNetworkObject = newGameObject.GetComponentInChildren<NetworkObject>();
         newGameObjectNetworkObject.SpawnWithOwnership(newClientOwnerId, destroyWithScene);
 
         return newGameObject;

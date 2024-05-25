@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d042368499dfb047b05fe63a00a3b44, type: 3}
+  m_Name: Lumber
+  m_EditorClassIdentifier: Assembly-CSharp::CharactersDataSO
+  characterSprite: {fileID: 21300000, guid: 316ee396def052d46a0d52ab7af3742c, type: 3}
+  characterShipSprite: {fileID: 1090193700, guid: bb2cf90fa160e694f89877fa35d63367, type: 3}
+  iconSprite: {fileID: 21300000, guid: 143213081105297be85972676d33f655, type: 3}
+  iconDeathSprite: {fileID: 21300000, guid: 5fbf3568e569fae2f92ef19cd2b599f1, type: 3}
+  characterName: Lumberjack
+  spaceshipPrefab: {fileID: 1429940234083994182, guid: 9449ddc806c163a4c9479e5478f96a2f, type: 3}
+  spaceshipScorePrefab: {fileID: 4916945949233725477, guid: 5e1466cc0fdd3c642a598e3df198dd9b, type: 3}
+  color: {r: 0.9372549, g: 0.4745098, b: 0, a: 1}
+  darkColor: {r: 0.827451, g: 0.24313726, b: 0.11764706, a: 1}
+  clientId: 0
+  playerId: -1
+  isSelected: 0
+  enemiesDestroyed: 0
+  powerUpsUsed: 0

@@ -12,6 +12,9 @@ public class GameplayManager : SingletonNetwork<GameplayManager>
     private CharacterDataSO[] m_charactersData;
 
     [SerializeField]
+    private GameObject train;
+
+    [SerializeField]
     private PlayerUI[] m_playersUI;
 
     [SerializeField]
@@ -105,7 +108,7 @@ public class GameplayManager : SingletonNetwork<GameplayManager>
         GameObject playerSpaceship = GameObject.Find(playerShipName);
 
         PlayerShipController playerShipController =
-            playerSpaceship.GetComponent<PlayerShipController>();
+            playerSpaceship.GetComponentInChildren<PlayerShipController>();
 
         m_playersUI[m_charactersData[charIndex].playerId].SetUI(
             m_charactersData[charIndex].playerId,
@@ -132,6 +135,7 @@ public class GameplayManager : SingletonNetwork<GameplayManager>
 
     private void Shutdown()
     {
+        CharacterSelectionManager.Instance.UnselectSelected();
         NetworkManager.Singleton.Shutdown();
         LoadingSceneManager.Instance.LoadScene(SceneName.Menu, false);
     }
@@ -153,6 +157,7 @@ public class GameplayManager : SingletonNetwork<GameplayManager>
 
     public void ExitToMenu()
     {
+        CharacterSelectionManager.Instance.UnselectSelected();
         if (IsServer)
         {
             StartCoroutine(HostShutdown());
@@ -171,6 +176,8 @@ public class GameplayManager : SingletonNetwork<GameplayManager>
     // for every client connected 
     public void ServerSceneInit(ulong clientId)
     {
+        NetworkObjectSpawner.SpawnNewNetworkObject(train, Vector3.up * -2.83f);
+
         // Save the clients 
         m_connectedClients.Add(clientId);
 
@@ -195,7 +202,7 @@ public class GameplayManager : SingletonNetwork<GameplayManager>
                             true);
 
                     PlayerShipController playerShipController =
-                        playerSpaceship.GetComponent<PlayerShipController>();
+                        playerSpaceship.GetComponentInChildren<PlayerShipController>();
                     playerShipController.characterData = data;
                     playerShipController.gameplayManager = this;
 

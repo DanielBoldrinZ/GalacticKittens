@@ -83,6 +83,7 @@ public class CharacterSelectionManager : SingletonNetwork<CharacterSelectionMana
     [SerializeField]
     AudioClip m_cancelClip;
 
+    int selectedIndex = -1;
     bool m_isTimerOn;
     float m_timer;
 
@@ -338,7 +339,30 @@ public class CharacterSelectionManager : SingletonNetwork<CharacterSelectionMana
         // The client disconnected is the host
         if (clientId == 0)
         {
+            CharacterSelectionManager.Instance.UnselectSelected();
             NetworkManager.Singleton.Shutdown();
+        }
+    }
+
+    public void UnselectSelected()
+    {
+        if (selectedIndex != -1)
+        {
+            charactersData[selectedIndex].isSelected = false;
+
+            for (int i = 0; i < m_playerStates.Length; i++)
+            {
+                // Only changes the ones on clients that are not selected
+                if (m_playerStates[i].playerState == ConnectionState.connected)
+                {
+                    if (m_playerStates[i].playerObject.CharSelected == selectedIndex)
+                    {
+                        SetCharacterColor(i, selectedIndex);
+                    }
+                }
+            }
+
+            selectedIndex = -1;
         }
     }
 
@@ -347,7 +371,7 @@ public class CharacterSelectionManager : SingletonNetwork<CharacterSelectionMana
         int playerId = GetPlayerId(clientId);
         m_isTimerOn = false;
         m_timer = m_timeToStartGame;
-
+        
         RemoveReadyStates(clientId, isDisconected);
 
         // Notify clients to change UI
@@ -379,6 +403,7 @@ public class CharacterSelectionManager : SingletonNetwork<CharacterSelectionMana
     {
         if (!charactersData[characterSelected].isSelected)
         {
+            selectedIndex = characterSelected;
             PlayerReadyClientRpc(clientId, playerId, characterSelected);
 
             StartGameTimer();
@@ -409,6 +434,7 @@ public class CharacterSelectionManager : SingletonNetwork<CharacterSelectionMana
     [ClientRpc]
     void PlayerReadyClientRpc(ulong clientId, int playerId, int characterSelected)
     {
+        selectedIndex = characterSelected;
         charactersData[characterSelected].isSelected = true;
         charactersData[characterSelected].clientId = clientId;
         charactersData[characterSelected].playerId = playerId;
@@ -445,6 +471,7 @@ public class CharacterSelectionManager : SingletonNetwork<CharacterSelectionMana
     [ClientRpc]
     void PlayerNotReadyClientRpc(ulong clientId, int playerId, int characterSelected)
     {
+        selectedIndex = characterSelected;
         charactersData[characterSelected].isSelected = false;
         charactersData[characterSelected].clientId = 0UL;
         charactersData[characterSelected].playerId = -1;

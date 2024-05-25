@@ -11,19 +11,24 @@ TagManager:
   - Enemy
   - EnemyDespawner
   - PlayerBulletDespawner
+  - Ground
+  - fires
+  - train
+  - controls
+  - nothing
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Ground
   - Water
   - UI
   - Enemy
   - Player
-  - 
-  - 
-  - 
-  - 
+  - TrainPlatform
+  - TrainWheel
+  - Building
+  - Resource
   - 
   - 
   - 

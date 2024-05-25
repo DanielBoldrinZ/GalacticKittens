@@ -153,6 +153,7 @@ public class EndGameManager : SingletonNetwork<EndGameManager>
 
     private void Shutdown()
     {
+        CharacterSelectionManager.Instance.UnselectSelected();
         NetworkManager.Singleton.Shutdown();
         LoadingSceneManager.Instance.LoadScene(SceneName.Menu, false);
     }

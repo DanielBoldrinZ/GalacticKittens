@@ -75,7 +75,7 @@ public class PlayerShipController : NetworkBehaviour, IDamagable
         }
     }
 
-    [ServerRpc]
+    [ServerRpc(RequireOwnership = true)]
     void ActivateShieldServerRpc()
     {
         // Activate the special in case the ship has available
@@ -127,6 +127,7 @@ public class PlayerShipController : NetworkBehaviour, IDamagable
     // Shutdown the network session and load the menu scene
     void Shutdown()
     {
+        CharacterSelectionManager.Instance.UnselectSelected();
         NetworkManager.Singleton.Shutdown();
         LoadingSceneManager.Instance.LoadScene(SceneName.Menu, false);
     }
