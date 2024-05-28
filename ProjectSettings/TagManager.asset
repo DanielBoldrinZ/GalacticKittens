@@ -16,6 +16,8 @@ TagManager:
   - train
   - controls
   - nothing
+  - interact
+  - resource
   layers:
   - Default
   - TransparentFX

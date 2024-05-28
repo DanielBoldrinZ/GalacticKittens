@@ -176,7 +176,7 @@ public class GameplayManager : SingletonNetwork<GameplayManager>
     // for every client connected 
     public void ServerSceneInit(ulong clientId)
     {
-        NetworkObjectSpawner.SpawnNewNetworkObject(train, Vector3.up * -2.83f);
+        //NetworkObjectSpawner.SpawnNewNetworkObject(train, Vector3.up * -2.83f);
 
         // Save the clients 
         m_connectedClients.Add(clientId);

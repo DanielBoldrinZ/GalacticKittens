@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 public class TrainEngine : MonoBehaviour
@@ -12,6 +13,8 @@ public class TrainEngine : MonoBehaviour
     [SerializeField] List<HingeJoint2D> wheels = new List<HingeJoint2D>();
     [SerializeField] List<float> speeds = new List<float>();
     [SerializeField] ParticleSystem smoke;
+
+    public bool IsOwner;
 
     private void Awake()
     {
