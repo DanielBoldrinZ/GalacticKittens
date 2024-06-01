@@ -110,15 +110,15 @@ public class GameplayManager : SingletonNetwork<GameplayManager>
         PlayerShipController playerShipController =
             playerSpaceship.GetComponentInChildren<PlayerShipController>();
 
-        m_playersUI[m_charactersData[charIndex].playerId].SetUI(
-            m_charactersData[charIndex].playerId,
-            m_charactersData[charIndex].iconSprite,
-            m_charactersData[charIndex].iconDeathSprite,
-            playerShipController.health.Value,
-            m_charactersData[charIndex].darkColor);
-
-        // Pass the UI to the player
-        playerShipController.playerUI = m_playersUI[m_charactersData[charIndex].playerId];
+        //m_playersUI[m_charactersData[charIndex].playerId].SetUI(
+        //    m_charactersData[charIndex].playerId,
+        //    m_charactersData[charIndex].iconSprite,
+        //    m_charactersData[charIndex].iconDeathSprite,
+        //    playerShipController.health.Value,
+        //    m_charactersData[charIndex].darkColor);
+        //
+        //// Pass the UI to the player
+        //playerShipController.playerUI = m_playersUI[m_charactersData[charIndex].playerId];
     }
 
     private IEnumerator HostShutdown()

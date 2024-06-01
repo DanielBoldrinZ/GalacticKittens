@@ -23,6 +23,9 @@ public class PlayerShipMovement : NetworkBehaviour
     SpriteRenderer m_shipRenderer;
 
     [SerializeField]
+    SpriteMask mask;
+
+    [SerializeField]
     Animator anim;
 
     [SerializeField]
@@ -81,7 +84,7 @@ public class PlayerShipMovement : NetworkBehaviour
     //private NetworkVariable<bool> networkIsLookingRight = new NetworkVariable<bool>(true);
     //private NetworkVariable<bool> networkIsGrounded = new NetworkVariable<bool>(true);
     //private NetworkVariable<Vector3> networkPosition = new NetworkVariable<Vector3>(Vector3.zero);
-    private NetworkVariable<Vector2> networkVelocity = new NetworkVariable<Vector2>(Vector2.zero);
+    //private NetworkVariable<Vector2> networkVelocity = new NetworkVariable<Vector2>(Vector2.zero);
 
     private Vector3 trainLastPosition;
 
@@ -101,14 +104,14 @@ public class PlayerShipMovement : NetworkBehaviour
     {
         if (!IsOwner && !overwriteOwner)
         {
-            if (onTrain)
-            {
-                if (trainLastPosition != null)
-                {
-                    transform.Translate(TrainEngine.Instance.gameObject.transform.position - trainLastPosition);
-                }
-                trainLastPosition = TrainEngine.Instance.gameObject.transform.position;
-            }
+            //if (onTrain)
+            //{
+            //    if (trainLastPosition != null)
+            //    {
+            //        transform.Translate(TrainEngine.Instance.gameObject.transform.position - trainLastPosition);
+            //    }
+            //    trainLastPosition = TrainEngine.Instance.gameObject.transform.position;
+            //}
             return;
         }
 
@@ -121,19 +124,32 @@ public class PlayerShipMovement : NetworkBehaviour
                 ResolveAll();
                 break;
             case CharacterType.Manager:
-                ResolveManager();
+                ResolveAll();
+                //ResolveManager();
                 break;
             case CharacterType.Lumberjack:
-                ResolveLumberjack();
+                ResolveAll();
+                //ResolveLumberjack();
                 break;
             case CharacterType.Miner:
-                ResolveMiner();
+                ResolveAll();
+                //ResolveMiner();
                 break;
             case CharacterType.Hunter:
-                ResolveHunter();
+                ResolveAll();
+                //ResolveHunter();
                 break;
         }
     }
+
+    void LateUpdate()
+    {
+        if (mask.sprite != m_shipRenderer.sprite)
+        {
+            mask.sprite = m_shipRenderer.sprite;
+        }
+    }
+
 
     private void FixedUpdate()
     {
@@ -383,7 +399,17 @@ public class PlayerShipMovement : NetworkBehaviour
             Interactable interact = other.GetComponent<Interactable>();
             if (interact != null)
             {
+                if (currInteractable != null)
+                {
+                    currInteractable.HideCanvas();
+                }
                 currInteractable = interact;
+                if (currResource != null)
+                {
+                    currResource.HideCanvas();
+                    currResource = null;
+                    ResetResources();
+                }
 
                 switch (interact.interactableType)
                 {
@@ -542,8 +568,6 @@ public class PlayerShipMovement : NetworkBehaviour
             Resource resource = other.GetComponentInChildren<Resource>();
             if (resource != null)
             {
-                currResource = resource;
-
                 switch (resource.resourceType)
                 {
                     case Resource.ResourceType.Stone:
@@ -591,6 +615,11 @@ public class PlayerShipMovement : NetworkBehaviour
                     default:
                         break;
                 }
+
+                if (currResource == resource)
+                {
+                    currResource = null;
+                }
             }
         }
         else if (other.tag.Equals("interact"))
@@ -601,11 +630,6 @@ public class PlayerShipMovement : NetworkBehaviour
                 if (currInteractable == interact)
                 {
                     currInteractable = null;
-                }
-                if (currResource != null)
-                {
-                    ResetResources();
-                    currResource = null;
                 }
 
                 switch (interact.interactableType)
@@ -693,15 +717,91 @@ public class PlayerShipMovement : NetworkBehaviour
 
     public void OnCollisionEnter2D_FROMFEET(Collision2D collision)
     {
+        if (!IsOwner && !overwriteOwner)
+        {
+            return;
+        }
+
         // Check if the collision object is on the "Train" layer
         if (((1 << collision.collider.gameObject.layer) & trainLayer) != 0)
         {
             if (!onTrain)
             {
-                onTrain = true;
-                // Parent player to train
+                //onTrain = true;
+                //// Parent player to train
+                //if (IsOwner)
+                if (NetworkManager.Singleton != null)
+                {
+                    SetOnTrainServerRpc(true);
+                }
+                else
+                {
+                    onTrain = true;
+                }
+            }
+
+            if (!isGrounded)
+            {
+                isGrounded = true;
+                if (rb.velocity.y < -1)
+                {
+                    anim.SetTrigger("contact");
+                }
+                SetGroundedServerRpc(isGrounded);
+            }
+        }
+        else if (collision.gameObject.CompareTag("Ground"))
+        {
+            if (onTrain)
+            {
+                //onTrain = false;
+                //// Unparent player from train
+                //if (IsOwner)
+                if (NetworkManager.Singleton != null)
+                {
+                    SetOnTrainServerRpc(false);
+                }
+                else
+                {
+                    onTrain = false;
+                }
+            }
+
+            if (!isGrounded)
+            {
+                isGrounded = true;
+                if (rb.velocity.y < -1)
+                {
+                    anim.SetTrigger("contact");
+                }
                 if (IsOwner)
-                    SetOnTrainServerRpc(onTrain);
+                    SetGroundedServerRpc(isGrounded);
+            }
+        }
+    }
+    public void OnCollisionStay2D_FROMFEET(Collision2D collision)
+    {
+        if (!IsOwner && !overwriteOwner)
+        {
+            return;
+        }
+
+        // Check if the collision object is on the "Train" layer
+        if (((1 << collision.collider.gameObject.layer) & trainLayer) != 0)
+        {
+            if (!onTrain)
+            {
+                //onTrain = true;
+                //// Parent player to train
+                //if (IsOwner)
+                if (NetworkManager.Singleton != null)
+                {
+                    SetOnTrainServerRpc(true);
+                }
+                else
+                {
+                    onTrain = true;
+                }
             }
 
             if (!isGrounded)
@@ -719,10 +819,17 @@ public class PlayerShipMovement : NetworkBehaviour
         {
             if (onTrain)
             {
-                onTrain = false;
-                // Unparent player from train
-                if (IsOwner)
-                    SetOnTrainServerRpc(onTrain);
+                //onTrain = false;
+                //// Unparent player from train
+                //if (IsOwner)
+                if (NetworkManager.Singleton != null)
+                {
+                    SetOnTrainServerRpc(false);
+                }
+                else
+                {
+                    onTrain = false;
+                }
             }
 
             if (!isGrounded)
@@ -732,14 +839,24 @@ public class PlayerShipMovement : NetworkBehaviour
                 {
                     anim.SetTrigger("contact");
                 }
-                if (IsOwner)
+                if (NetworkManager.Singleton != null)
+                {
                     SetGroundedServerRpc(isGrounded);
+                }
+                else
+                {
+                    isGrounded = true;
+                }
             }
         }
     }
-
     public void OnCollisionExit2D_FROMFEET(Collision2D collision)
     {
+        if (!IsOwner && !overwriteOwner)
+        {
+            return;
+        }
+
         GameObject collisionObject = collision.gameObject;
         if (collision.gameObject.CompareTag("Ground"))
         {
@@ -764,19 +881,21 @@ public class PlayerShipMovement : NetworkBehaviour
     [ServerRpc(RequireOwnership = true)]
     private void SetOnTrainServerRpc(bool _onTrain)
     {
-        SetOnTrainClientRpc(_onTrain);
-    }
-
-    [ClientRpc]
-    private void SetOnTrainClientRpc(bool _onTrain)
-    {
-        if (IsOwner || overwriteOwner)
-        {
-            return;
-        }
-
         onTrain = _onTrain;
+
+        //SetOnTrainClientRpc(_onTrain);
     }
+
+    //[ClientRpc]
+    //private void SetOnTrainClientRpc(bool _onTrain)
+    //{
+    //    if (IsOwner || overwriteOwner)
+    //    {
+    //        return;
+    //    }
+    //
+    //    onTrain = _onTrain;
+    //}
 
     [ServerRpc(RequireOwnership = true)]
     private void SetGroundedServerRpc(bool grounded)
@@ -796,56 +915,31 @@ public class PlayerShipMovement : NetworkBehaviour
         anim.SetBool("grounded", grounded);
     }
 
-    public void OnCollisionStay2D_FROMFEET(Collision2D collision)
+  
+
+    private void PickupResource()
     {
-        // Check if the collision object is on the "Train" layer
-        if (((1 << collision.collider.gameObject.layer) & trainLayer) != 0)
-        {
-            if (!onTrain)
-            {
-                onTrain = true;
-                // Parent player to train
-                if (IsOwner)
-                    SetOnTrainServerRpc(onTrain);
-            }
+        currResource.PickUp();
+        currResource = null;
+    }
 
-            if (!isGrounded)
-            {
-                isGrounded = true;
-                if (rb.velocity.y < -1)
-                {
-                    anim.SetTrigger("contact");
-                }
-                if (IsOwner)
-                    SetGroundedServerRpc(isGrounded);
-            }
-        }
-        else if (collision.gameObject.CompareTag("Ground"))
-        {
-            if (onTrain)
-            {
-                onTrain = false;
-                // Unparent player from train
-                if (IsOwner)
-                    SetOnTrainServerRpc(onTrain);
-            }
-
-            if (!isGrounded)
-            {
-                isGrounded = true;
-                if (rb.velocity.y < -1)
-                {
-                    anim.SetTrigger("contact");
-                }
-                if (IsOwner)
-                    SetGroundedServerRpc(isGrounded);
-            }
-        }
+    private void InteractableHit()
+    {
+        currInteractable.Hit(transform.position.x > currInteractable.transform.position.x);
     }
 
     private void ResolveAll()
     {
-        if (Input.GetKeyDown(KeyCode.E))
+        //////////////////////////////////////////// Train Controls
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            if (onControls)
+            {
+                TrainControls.Instance.Decrease();
+                DecreaseTrainControlsServerRpc();
+            }
+        }
+        else if (Input.GetKeyDown(KeyCode.E))
         {
             if (onControls)
             {
@@ -857,366 +951,61 @@ public class PlayerShipMovement : NetworkBehaviour
             {
                 FireControls.Instance.Increase();
                 IncreaseFireControlsServerRpc();
-            }
+            }//////////////////////////////////////////// Interactables
             else
             if (onRock)
             {
-                currInteractable.Hit();
-                InteractHitServerRpc();
+                InteractableHit();
             }
             else if (onTree)
             {
-                currInteractable.Hit();
-                InteractHitServerRpc();
+                InteractableHit();
             }
             else if (onBush)
             {
-                currInteractable.Hit();
-                InteractHitServerRpc();
+                InteractableHit();
             }
             else if (onPond)
             {
-                currInteractable.Hit();
-                InteractHitServerRpc();
-            }
+                InteractableHit();
+            }//////////////////////////////////////////// Resources
             else if (onFish)
             {
-                currResource.PickUp();
-                InteractHitServerRpc();
+                PickupResource();
             }
             else if (onLog)
             {
-                currResource.PickUp();
-                InteractHitServerRpc();
+                PickupResource();
             }
             else if (onStone)
             {
-                currResource.PickUp();
-                InteractHitServerRpc();
+                PickupResource();
             }
             else if (onIron)
             {
-                currResource.PickUp();
-                InteractHitServerRpc();
+                PickupResource();
             }
             else if (onBerry)
             {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-        }
-        else if (Input.GetKeyDown(KeyCode.Q))
-        {
-            if (onControls)
-            {
-                TrainControls.Instance.Decrease();
-                DecreaseTrainControlsServerRpc();
+                PickupResource();
             }
         }
     }
 
-    private void ResolveManager()
-    {
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            if (onControls)
-            {
-                TrainControls.Instance.Increase();
-                IncreaseTrainControlsServerRpc();
-            }
-            else
-            if (onFires)
-            {
-                FireControls.Instance.Increase();
-                IncreaseFireControlsServerRpc();
-            }
-            else
-            if (onRock)
-            {
-                currInteractable.Hit();
-                InteractHitServerRpc();
-            }
-            else if (onTree)
-            {
-                currInteractable.Hit();
-                InteractHitServerRpc();
-            }
-            else if (onBush)
-            {
-                currInteractable.Hit();
-                InteractHitServerRpc();
-            }
-            else if (onPond)
-            {
-                currInteractable.Hit();
-                InteractHitServerRpc();
-            }
-            else if (onFish)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-            else if (onLog)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-            else if (onStone)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-            else if (onIron)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-            else if (onBerry)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-        }
-        else if (Input.GetKeyDown(KeyCode.Q))
-        {
-            if (onControls)
-            {
-                TrainControls.Instance.Decrease();
-                DecreaseTrainControlsServerRpc();
-            }
-        }
-    }
-
-    private void ResolveMiner()
-    {
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            if (onControls)
-            {
-                TrainControls.Instance.Increase();
-                IncreaseTrainControlsServerRpc();
-            }
-            else
-            if (onFires)
-            {
-                FireControls.Instance.Increase();
-                IncreaseFireControlsServerRpc();
-            }
-            else
-            if (onRock)
-            {
-                currInteractable.Hit();
-                InteractHitServerRpc();
-            }
-            else if (onTree)
-            {
-                currInteractable.Hit();
-                InteractHitServerRpc();
-            }
-            else if (onBush)
-            {
-                currInteractable.Hit();
-                InteractHitServerRpc();
-            }
-            else if (onPond)
-            {
-                currInteractable.Hit();
-                InteractHitServerRpc();
-            }
-            else if (onFish)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-            else if (onLog)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-            else if (onStone)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-            else if (onIron)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-            else if (onBerry)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-        }
-        else if (Input.GetKeyDown(KeyCode.Q))
-        {
-            if (onControls)
-            {
-                TrainControls.Instance.Decrease();
-                DecreaseTrainControlsServerRpc();
-            }
-        }
-    }
-
-    private void ResolveLumberjack()
-    {
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            if (onControls)
-            {
-                TrainControls.Instance.Increase();
-                IncreaseTrainControlsServerRpc();
-            }
-            else
-            if (onFires)
-            {
-                FireControls.Instance.Increase();
-                IncreaseFireControlsServerRpc();
-            }
-            else
-            if (onRock)
-            {
-                currInteractable.Hit();
-                InteractHitServerRpc();
-            }
-            else if (onTree)
-            {
-                currInteractable.Hit();
-                InteractHitServerRpc();
-            }
-            else if (onBush)
-            {
-                currInteractable.Hit();
-                InteractHitServerRpc();
-            }
-            else if (onPond)
-            {
-                currInteractable.Hit();
-                InteractHitServerRpc();
-            }
-            else if (onFish)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-            else if (onLog)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-            else if (onStone)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-            else if (onIron)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-            else if (onBerry)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-        }
-        else if (Input.GetKeyDown(KeyCode.Q))
-        {
-            if (onControls)
-            {
-                TrainControls.Instance.Decrease();
-                DecreaseTrainControlsServerRpc();
-            }
-        }
-    }
-
-    private void ResolveHunter()
-    {
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            if (onControls)
-            {
-                TrainControls.Instance.Increase();
-                IncreaseTrainControlsServerRpc();
-            }
-            else
-            if (onFires)
-            {
-                FireControls.Instance.Increase();
-                IncreaseFireControlsServerRpc();
-            }
-            else
-            if (onRock)
-            {
-                currInteractable.Hit();
-                InteractHitServerRpc();
-            }
-            else if (onTree)
-            {
-                currInteractable.Hit();
-                InteractHitServerRpc();
-            }
-            else if (onBush)
-            {
-                currInteractable.Hit();
-                InteractHitServerRpc();
-            }
-            else if (onPond)
-            {
-                currInteractable.Hit();
-                InteractHitServerRpc();
-            }
-            else if (onFish)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-            else if (onLog)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-            else if (onStone)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-            else if (onIron)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-            else if (onBerry)
-            {
-                currResource.PickUp();
-                InteractHitServerRpc();
-            }
-        }
-        else if (Input.GetKeyDown(KeyCode.Q))
-        {
-            if (onControls)
-            {
-                TrainControls.Instance.Decrease();
-                DecreaseTrainControlsServerRpc();
-            }
-        }
-    }
-
-    [ServerRpc(RequireOwnership = true)]
-    private void InteractHitServerRpc()
-    {
-        InteractHitClientRpc();
-    }
-    [ClientRpc]
-    private void InteractHitClientRpc()
-    {
-        if (IsOwner || overwriteOwner)
-        {
-            return;
-        }
-        currInteractable.Hit();
-    }
+    //[ServerRpc(RequireOwnership = true)]
+    //private void InteractHitServerRpc()
+    //{
+    //    InteractHitClientRpc();
+    //}
+    //[ClientRpc]
+    //private void InteractHitClientRpc()
+    //{
+    //    if (IsOwner || overwriteOwner)
+    //    {
+    //        return;
+    //    }
+    //    currInteractable.Hit();
+    //}
 
     [ServerRpc(RequireOwnership = true)]
     private void IncreaseFireControlsServerRpc()

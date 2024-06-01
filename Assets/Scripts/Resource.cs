@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class Resource : MonoBehaviour
+public class Resource : NetworkBehaviour
 {
     public enum ResourceType
     {
@@ -20,10 +21,24 @@ public class Resource : MonoBehaviour
     [SerializeField]
     GameObject canvas;
 
+    private void Awake()
+    {
+        if (canvas != null)
+        {
+            canvas.transform.SetParent(null);
+        }
+    }
+
     public void PickUp()
     {
-        Destroy(canvas);
-        Destroy(gameObject.transform.parent.gameObject);
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkObjectDespawner.DespawnNetworkObject(NetworkObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     public void ShowCanvas()

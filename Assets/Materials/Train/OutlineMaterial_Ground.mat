@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: OutlineMaterial_TrainWheel
+  m_Name: OutlineMaterial_Ground
   m_Shader: {fileID: 4800000, guid: 77c984aa70a16074abe52e4f650c1d87, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -75,14 +75,14 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _GrainIntensity: 0.561
-    - _GrainScale: 10000000
+    - _GrainIntensity: 0
+    - _GrainScale: 0
     - _InnerAlpha: 1
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Outline: 1
-    - _OutlineSize: 2
+    - _OutlineSize: 9
     - _Parallax: 0.02
     - _Perturbation: 1
     - _SmoothnessTextureChannel: 0
@@ -91,7 +91,7 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 0.003921569}
+    - _Color: {r: 0.5283019, g: 0.5283019, b: 0.5283019, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _OutlineColor: {r: 1, g: 1, b: 1, a: 1}
+    - _OutlineColor: {r: 0.5294118, g: 0.5294118, b: 0.5294118, a: 1}
   m_BuildTextureStacks: []

@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class Interactable : MonoBehaviour
+public class Interactable : NetworkBehaviour
 {
     public enum InteractableType
     {
@@ -14,7 +15,7 @@ public class Interactable : MonoBehaviour
         Pond,
         Quest,
         TrainDamage,
-
+        Kitchen
     }
 
     [SerializeField]
@@ -30,11 +31,22 @@ public class Interactable : MonoBehaviour
     bool shouldDestroy;
 
     [SerializeField]
-    List<Rigidbody2D> drops;
+    List<GameObject> drops;
+
+    [SerializeField]
+    List<GameObject> toTurnOff;
+
+    [SerializeField]
+    Transform spawnLocation;
+
+    bool active = true;
 
     public void ShowCanvas()
     {
-        canvas.SetActive(true);
+        if (active)
+        {
+            canvas.SetActive(true);
+        }
     }
 
     public void HideCanvas()
@@ -42,15 +54,78 @@ public class Interactable : MonoBehaviour
         canvas.SetActive(false);
     }
 
-    public void Hit()
+    public void Hit(bool playerToTheRight)
     {
-        if (drops.Count > 0)
+        if (active && drops.Count > 0)
         {
-            drops[0].gameObject.SetActive(true);
-            drops[0].transform.SetParent(null);
-            drops[0].velocity = Vector2.one * Random.Range(1.25f, 3.5f);
+            if (NetworkManager.Singleton != null)
+            {
+                HitServerRpc(playerToTheRight);
+            }
+            else
+            {
+                GameObject instantiated = Instantiate(drops[0]);
+                instantiated.transform.position = spawnLocation.position;
+
+                if (interactableType != InteractableType.Kitchen)
+                {
+                    Rigidbody2D rb = instantiated.GetComponent<Rigidbody2D>();
+                    if (playerToTheRight)
+                    {
+                        float range = Random.Range(2f, 4f);
+                        rb.velocity = Vector2.right * -range + Vector2.up * range;
+                    }
+                    else
+                    {
+                        rb.velocity = Vector2.one * Random.Range(2f, 4f);
+                    }
+                }
+
+                drops.Remove(drops[0]);
+                anim.SetTrigger("hit");
+
+                if (toTurnOff.Count > 0)
+                {
+                    toTurnOff[0].SetActive(false);
+                    toTurnOff.Remove(toTurnOff[0]);
+                }
+            }
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void HitServerRpc(bool playerToTheRight)
+    {
+        if (active && drops.Count > 0)
+        {
+            GameObject instantiated = NetworkObjectSpawner.SpawnNewNetworkObject(drops[0]);
+            instantiated.transform.position = spawnLocation.position;
+
+            if (interactableType != InteractableType.Kitchen)
+            {
+                if (IsOwner)
+                {
+                    Rigidbody2D rb = instantiated.GetComponent<Rigidbody2D>();
+                    if (playerToTheRight)
+                    {
+                        float range = Random.Range(2f, 4f);
+                        rb.velocity = Vector2.right * -range + Vector2.up * range;
+                    }
+                    else
+                    {
+                        rb.velocity = Vector2.one * Random.Range(2f, 4f);
+                    }
+                }
+            }
+
             drops.Remove(drops[0]);
             anim.SetTrigger("hit");
+
+            if (toTurnOff.Count > 0)
+            {
+                toTurnOff[0].SetActive(false);
+                toTurnOff.Remove(toTurnOff[0]);
+            }
         }
     }
 
@@ -60,7 +135,50 @@ public class Interactable : MonoBehaviour
         {
             if (shouldDestroy)
             {
-                Destroy(gameObject);
+                if (NetworkManager.Singleton != null)
+                {
+                    NetworkObjectDespawner.DespawnNetworkObject(NetworkObject);
+                }
+                else
+                {
+                    Destroy(gameObject);
+                }
+            }
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (interactableType != InteractableType.Kitchen)
+        {
+            if (collision.tag.Equals("train"))
+            {
+                active = false;
+            }
+        }
+    }
+
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        if (!active)
+        {
+            if (interactableType != InteractableType.Kitchen)
+            {
+                if (collision.tag.Equals("train"))
+                {
+                    active = true;
+                }
+            }
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (interactableType != InteractableType.Kitchen)
+        {
+            if (collision.tag.Equals("train"))
+            {
+                active = true;
             }
         }
     }

@@ -311,10 +311,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5466296451182135794, guid: 568e754c531e50f95a5ae2f9065631c1, type: 3}
-      propertyPath: NetworkConfig.Prefabs.NetworkPrefabsLists.Array.data[0]
-      value: 
-      objectReference: {fileID: 11400000, guid: 069a0e5208195e44fafa69d299977506, type: 2}
     - target: {fileID: 5466296451182135796, guid: 568e754c531e50f95a5ae2f9065631c1, type: 3}
       propertyPath: m_Name
       value: NetworkManager
