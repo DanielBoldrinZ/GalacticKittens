@@ -1,6 +1,9 @@
 using System;
 using UnityEngine;
 using Unity.Netcode;
+using System.Collections.Generic;
+using static InventoryResource;
+using Cinemachine;
 
 public class PlayerShipMovement : NetworkBehaviour
 {
@@ -44,6 +47,12 @@ public class PlayerShipMovement : NetworkBehaviour
     GameObject camera;
 
     [SerializeField]
+    CinemachineVirtualCamera vcamera;
+
+    [SerializeField]
+    CinemachineVirtualCamera normalvcamera;
+
+    [SerializeField]
     bool overwriteOwner;
 
     [SerializeField]
@@ -51,6 +60,19 @@ public class PlayerShipMovement : NetworkBehaviour
 
     [SerializeField]
     private float m_run_speed;
+
+    [SerializeField]
+    List<GameObject> managerObjects;
+
+    [SerializeField]
+    List<GameObject> minerObjects;
+
+    [SerializeField]
+    List<GameObject> lumberObjects;
+
+    [SerializeField]
+    List<GameObject> hunterObjects;
+
 
     //private float m_hold_speed = 2.65f;
 
@@ -63,6 +85,7 @@ public class PlayerShipMovement : NetworkBehaviour
     private bool onIron = false;
     private bool onTree = false;
     private bool onBlockage = false;
+    private bool onGold = false;
     private bool onLog = false;
     private bool onPond = false;
     private bool onFish = false;
@@ -98,6 +121,7 @@ public class PlayerShipMovement : NetworkBehaviour
         }
 
         camera.transform.SetParent(null);
+        Inventory.Instance.Hide();
     }
 
     void Update()
@@ -159,6 +183,29 @@ public class PlayerShipMovement : NetworkBehaviour
         }
     }
 
+    private void TurnnAllObjectsOff()
+    {
+        foreach (var item in managerObjects)
+        {
+            item.SetActive(false);
+        }
+
+        foreach (var item in minerObjects)
+        {
+            item.SetActive(false);
+        }
+
+        foreach (var item in lumberObjects)
+        {
+            item.SetActive(false);
+        }
+
+        foreach (var item in hunterObjects)
+        {
+            item.SetActive(false);
+        }
+    }
+
     private void UpdateAnimations(Vector2 velocity)
     {
         anim.SetFloat("xspeed", Mathf.Abs(velocity.x));
@@ -194,6 +241,61 @@ public class PlayerShipMovement : NetworkBehaviour
         else if (Input.GetKeyDown(KeyCode.S))
         {
             GoDown();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            characterType = CharacterType.Manager;
+            TurnnAllObjectsOff();
+            foreach (var item in managerObjects)
+            {
+                item.SetActive(true);
+            }
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            characterType = CharacterType.Miner;
+            TurnnAllObjectsOff();
+            foreach (var item in minerObjects)
+            {
+                item.SetActive(true);
+            }
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            characterType = CharacterType.Lumberjack;
+            TurnnAllObjectsOff();
+            foreach (var item in lumberObjects)
+            {
+                item.SetActive(true);
+            }
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha4))
+        {
+            characterType = CharacterType.Hunter;
+            TurnnAllObjectsOff();
+            foreach (var item in hunterObjects)
+            {
+                item.SetActive(true);
+            }
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha5))
+        {
+            characterType = CharacterType.All;
+            TurnnAllObjectsOff();
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha6))
+        {
+            // Gravedigger
+        }
+
+        if (Input.GetKeyDown(KeyCode.Tab))
+        {
+            Inventory.Instance.Show();
+        }
+        else if (Input.GetKeyUp(KeyCode.Tab))
+        {
+            Inventory.Instance.Hide();
         }
 
         if (Input.GetKey(KeyCode.W))
@@ -347,45 +449,52 @@ public class PlayerShipMovement : NetworkBehaviour
 
                 switch (resource.resourceType)
                 {
-                    case Resource.ResourceType.Stone:
+                    case ResourceType.Stone:
                         if (!onStone)
                         {
                             onStone = true;
                             resource.ShowCanvas();
                         }
                         break;
-                    case Resource.ResourceType.Log:
+                    case ResourceType.Log:
                         if (!onLog)
                         {
                             onLog = true;
                             resource.ShowCanvas();
                         }
                         break;
-                    case Resource.ResourceType.Berry:
+                    case ResourceType.Berry:
                         if (!onBerry)
                         {
                             onBerry = true;
                             resource.ShowCanvas();
                         }
                         break;
-                    case Resource.ResourceType.Fish:
+                    case ResourceType.Fish:
                         if (!onFish)
                         {
                             onFish = true;
                             resource.ShowCanvas();
                         }
                         break;
-                    case Resource.ResourceType.Iron:
+                    case ResourceType.Iron:
                         if (!onIron)
                         {
                             onIron = true;
                             resource.ShowCanvas();
                         }
                         break;
-                    case Resource.ResourceType.Coal:
+                    case ResourceType.Coal:
                         if (!onCoal)
                         {
                             onCoal = true;
+                            resource.ShowCanvas();
+                        }
+                        break;
+                    case ResourceType.Gold:
+                        if (!onGold)
+                        {
+                            onGold = true;
                             resource.ShowCanvas();
                         }
                         break;
@@ -520,12 +629,16 @@ public class PlayerShipMovement : NetworkBehaviour
 
     private void ShowTrainControls()
     {
+        normalvcamera.gameObject.SetActive(false);
+        vcamera.gameObject.SetActive(true);
         TrainControls.Instance.Show();
         onControls = true;
     }
 
     private void HideTrainControls()
     {
+        normalvcamera.gameObject.SetActive(true);
+        vcamera.gameObject.SetActive(false);
         TrainControls.Instance.Hide();
         onControls = false;
     }
@@ -570,45 +683,52 @@ public class PlayerShipMovement : NetworkBehaviour
             {
                 switch (resource.resourceType)
                 {
-                    case Resource.ResourceType.Stone:
+                    case ResourceType.Stone:
                         if (onStone)
                         {
                             onStone = false;
                             resource.HideCanvas();
                         }
                         break;
-                    case Resource.ResourceType.Log:
+                    case ResourceType.Log:
                         if (onLog)
                         {
                             onLog = false;
                             resource.HideCanvas();
                         }
                         break;
-                    case Resource.ResourceType.Berry:
+                    case ResourceType.Berry:
                         if (onBerry)
                         {
                             onBerry = false;
                             resource.HideCanvas();
                         }
                         break;
-                    case Resource.ResourceType.Fish:
+                    case ResourceType.Fish:
                         if (onFish)
                         {
                             onFish = false;
                             resource.HideCanvas();
                         }
                         break;
-                    case Resource.ResourceType.Iron:
+                    case ResourceType.Iron:
                         if (onIron)
                         {
                             onIron = false;
                             resource.HideCanvas();
                         }
                         break;
-                    case Resource.ResourceType.Coal:
+                    case ResourceType.Coal:
                         if (onCoal)
                         {
                             onCoal = false;
+                            resource.HideCanvas();
+                        }
+                        break;
+                    case ResourceType.Gold:
+                        if (onGold)
+                        {
+                            onGold = false;
                             resource.HideCanvas();
                         }
                         break;
@@ -919,8 +1039,10 @@ public class PlayerShipMovement : NetworkBehaviour
 
     private void PickupResource()
     {
-        currResource.PickUp();
-        currResource = null;
+        if (currResource.PickUp())
+        {
+            currResource = null;
+        }
     }
 
     private void InteractableHit()
@@ -990,6 +1112,11 @@ public class PlayerShipMovement : NetworkBehaviour
                 PickupResource();
             }
         }
+    }
+
+    public void PlayFootStep()
+    {
+
     }
 
     //[ServerRpc(RequireOwnership = true)]

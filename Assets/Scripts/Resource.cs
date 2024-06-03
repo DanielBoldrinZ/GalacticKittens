@@ -2,24 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using static InventoryResource;
 
 public class Resource : NetworkBehaviour
 {
-    public enum ResourceType
-    {
-        Stone,
-        Log,
-        Berry,
-        Fish,
-        Iron,
-        Coal
-    }
-    
-    [SerializeField]
-    public ResourceType resourceType = ResourceType.Stone;
-
     [SerializeField]
     GameObject canvas;
+
+
+    [SerializeField]
+    public ResourceType resourceType = ResourceType.Stone;
 
     private void Awake()
     {
@@ -29,16 +21,26 @@ public class Resource : NetworkBehaviour
         }
     }
 
-    public void PickUp()
+    public bool PickUp()
     {
         if (NetworkManager.Singleton != null)
         {
-            NetworkObjectDespawner.DespawnNetworkObject(NetworkObject);
+            if (Inventory.Instance.GetItem(resourceType))
+            {
+                NetworkObjectDespawner.DespawnNetworkObject(NetworkObject);
+                return true;
+            }
         }
         else
         {
-            Destroy(gameObject);
+            if (Inventory.Instance.GetItem(resourceType))
+            { 
+                Destroy(transform.parent.gameObject);
+                return true;
+            }
         }
+
+        return false;
     }
 
     public void ShowCanvas()

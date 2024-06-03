@@ -336,6 +336,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   resourceType: 4
+  resourceImg: {fileID: 1302007695, guid: 9b47ae4a7b7176b40b6186ae4abaf375, type: 3}
   canvas: {fileID: 5018621771029700898}
 --- !u!1 &5862234094671843923
 GameObject:

@@ -13,6 +13,7 @@ public class TrainEngine : MonoBehaviour
     [SerializeField] List<HingeJoint2D> wheels = new List<HingeJoint2D>();
     [SerializeField] List<float> speeds = new List<float>();
     [SerializeField] ParticleSystem smoke;
+    [SerializeField] Rigidbody2D rb;
 
     public bool IsOwner;
 
@@ -29,6 +30,13 @@ public class TrainEngine : MonoBehaviour
         }
 
         cachedTR = transform;
+
+        Invoke("FreezeY", 0.5f);
+    }
+
+    private void FreezeY()
+    {
+        rb.constraints = RigidbodyConstraints2D.FreezeRotation | RigidbodyConstraints2D.FreezePositionY;
     }
 
     private void FixedUpdate()

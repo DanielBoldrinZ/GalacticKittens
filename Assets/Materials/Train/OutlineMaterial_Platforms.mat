@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: OutlineMaterial_Hats
+  m_Name: OutlineMaterial_Platforms
   m_Shader: {fileID: 4800000, guid: 77c984aa70a16074abe52e4f650c1d87, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -45,7 +45,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _GrainTex:
-        m_Texture: {fileID: 2800000, guid: d8fec54c892a09c43a532ee00087bea7, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -68,23 +68,25 @@ Material:
     m_Floats:
     - PixelSnap: 1
     - _BumpScale: 1
-    - _ChalkAngle: 320
+    - _ChalkAngle: 347
+    - _ChalkIntensity: 1
+    - _ChalkScale: 148.92
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _GrainIntensity: 0.393
+    - _GrainIntensity: 0.462
     - _GrainScale: 100000000
     - _InnerAlpha: 1
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Outline: 1
-    - _OutlineSize: 0
+    - _OutlineSize: 19.31
     - _Parallax: 0.02
-    - _Perturbation: 100000
+    - _Perturbation: -4.59
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
